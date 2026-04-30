@@ -1,0 +1,2124 @@
+<!-- Sultan 47 v4.2 MOBILE - 16-bit Asset Pipeline + Manifold Import + Multi-Tool Workflow Station + SFX & Data Plugins + Symbol Map + FULL EDITING -->
+<!DOCTYPE html>
+<html lang="en"> 
+<head> 
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Sultan 47 | Mobile Game Dev Station</title>
+<style>
+:root {
+  --blue: #007bff; --silver: #c0c0c0; --dark: #121212; --card-bg: #1e1e1e; 
+  --input-bg: #2a2a2a; --border: #333; --green: #28a745; --red: #dc3545; --yellow:#ffc107; --purple:#6f42c1; --orange:#fd7e14;
+}
+html { color-scheme: dark; font-family: system-ui, sans-serif; }
+body { background: var(--dark); color: white; padding: 10px; margin: 0; }
+.container { max-width: 800px; margin: auto; }
+.card { background: var(--card-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border); }
+h3 { margin: 0 0 15px 0; color: var(--silver); font-size: 1.1em; display:flex; justify-content:space-between; align-items:center; }
+label { display: block; font-size: 0.8em; color: var(--silver); margin-bottom: 5px; }
+select, input, textarea { width: 100%; padding: 10px; margin-bottom: 12px; border-radius: 4px; border: 1px solid #444; background: var(--input-bg); color: white; box-sizing: border-box; font-family:ui-monospace,monospace; }
+.btn-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 6px; }
+button { padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; background: var(--blue); color: white; font-size:0.85em; }
+button:active { transform: scale(0.97); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+.secondary { background: #444; } .green { background: var(--green); } .red { background: var(--red); } .yellow { background: var(--yellow); color:#000; } .purple { background: var(--purple); } .orange { background: var(--orange); }
+#outputEl { background: #000; color: #0f0; font-family: ui-monospace, monospace; padding: 12px; border-radius: 4px; border: 1px solid #0f0; white-space: pre-wrap; font-size: 0.75em; max-height: 150px; overflow-y: auto; }
+.plugin-tag { font-size: 0.7em; background: #333; padding: 2px 6px; border-radius: 10px; color: var(--blue); }
+.filename-display { color: var(--blue); font-family: monospace; font-size: 0.85em; }
+.canvas-container { overflow: auto; border: 1px solid var(--border); background: repeating-conic-gradient(#333 0% 25%, #222 0% 50%) 50% / 20px 20px; margin-bottom: 10px; display: flex; justify-content: center; border-radius: 4px; min-height:80px; }
+canvas { image-rendering: pixelated; max-width: 100%; height: auto; cursor: crosshair; }
+.editor-controls { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: center; }
+.control-group { display: flex; align-items: center; gap: 4px; background: var(--input-bg); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border); font-size:0.8em; }
+input[type="range"] { width: 50px; margin: 0; padding: 0; }
+input[type="color"] { width: 24px; height: 24px; padding: 0; border: none; background: none; }
+.palette-swatch { width:20px; height:20px; border:1px solid #555; display:inline-block; margin:1px; cursor:pointer; }
+#loadingEl { color: var(--blue); font-weight: bold; font-size: 0.9em; text-align: center; margin: 10px 0; }
+.tile-preview { width:96px; height:96px; background-repeat:repeat; border:1px solid var(--border); image-rendering:pixelated; }
+.tabs { display:flex; gap:3px; margin-bottom:10px; flex-wrap:wrap; overflow-x:auto; padding-bottom:2px; }
+.tab { padding:6px 10px; background:#333; border-radius:4px 4px 0 0; cursor:pointer; font-size:0.75em; white-space:nowrap; }
+.tab.active { background:var(--blue); }
+.hidden { display:none; }
+.mono { font-family:ui-monospace,monospace; font-size:0.75em; }
+.tool-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap:8px; margin-bottom:10px; }
+.tool-card { background:var(--input-bg); padding:10px; border-radius:6px; border:1px solid var(--border); text-align:center; cursor:pointer; transition:all 0.2s; }
+.tool-card:hover { border-color:var(--blue); background:#333; }
+.tool-card.active { border-color:var(--green); background:rgba(40,167,69,0.1); }
+.tool-icon { font-size:1.5em; margin-bottom:5px; display:block; }
+.particle-canvas { border:1px solid var(--border); background:#000; border-radius:4px; }
+.collison-overlay { position:absolute; top:0; left:0; pointer-events:none; }
+.data-row { display:grid; grid-template-columns: 1fr 1fr 80px 40px; gap:5px; margin-bottom:5px; align-items:center; }
+.map-row { display:grid; grid-template-columns: 40px 1fr 60px 40px; gap:5px; margin-bottom:5px; align-items:center; }
+.tool-btn.active { background:var(--green) !important; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h3>Sultan 47: Mobile Dev Station <span class="plugin-tag">v4.2</span></h3>
+  
+  <!-- WORKFLOW STATION GRID -->
+  <div class="card">
+    <label>Workflow Tools</label>
+    <div class="tool-grid">
+      <div class="tool-card active" onclick="setTool('asset')"><span class="tool-icon">🎨</span>Asset Gen</div>
+      <div class="tool-card" onclick="setTool('collision')"><span class="tool-icon">🎯</span>Collision</div>
+      <div class="tool-card" onclick="setTool('particle')"><span class="tool-icon">✨</span>Particles</div>
+      <div class="tool-card" onclick="setTool('palette')"><span class="tool-icon">🌈</span>Palette Gen</div>
+      <div class="tool-card" onclick="setTool('font')"><span class="tool-icon">🔤</span>Font Preview</div>
+      <div class="tool-card" onclick="setTool('packer')"><span class="tool-icon">📦</span>Sprite Packer</div>
+      <div class="tool-card" onclick="setTool('sfx')"><span class="tool-icon">🔊</span>SFX Synth</div>
+      <div class="tool-card" onclick="setTool('data')"><span class="tool-icon">📊</span>Data Editor</div>
+      <div class="tool-card" onclick="setTool('map')"><span class="tool-icon">🗺️</span>Symbol Map</div>
+    </div>
+  </div>
+  
+  <!-- ASSET GENERATION TOOL -->
+  <div id="tool-asset" class="tool-panel">
+    <div class="card">
+      <label>Asset Type</label>
+      <select id="categorySelect" onchange="updateUI()">
+        <option value="char">Character - Player #21</option>
+        <option value="ui">UI & Overlays</option>
+        <option value="env">Environment Tile</option>
+        <option value="fx">Effects & Particles</option>
+        <option value="item">Item / Pickup</option>
+        <option value="proc">Procedural Manifold</option>
+      </select>
+      
+      <label>Subject / Action</label>
+      <input type="text" id="subjectInput" placeholder="e.g. Throwing, Health Bar, Turf">
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div>
+          <label>Frames</label>
+          <select id="framesSelect">
+            <option value="single">Single</option><option value="4">4 Frames</option>
+            <option value="8">8 Frames</option><option value="12">12 Frames</option><option value="16">16 Frames</option>
+          </select>
+        </div>
+        <div>
+          <label>Resolution</label>
+          <select id="resSelect">
+            <option value="32">32×32</option><option value="64" selected>64×64</option>
+            <option value="128">128×128</option><option value="256">256×256</option>
+          </select>
+        </div>
+      </div>
+      
+      <label>Player #21 Palette Lock</label>
+      <div id="palettePreview"></div>
+      
+      <label>Custom Tags</label>
+      <input type="text" id="tagsInput" placeholder="optional: top-down, side-view, glowing">
+    </div>
+
+    <div class="btn-group" style="margin-bottom: 15px;">
+      <button id="generateBtn" onclick="generatePrompt()">Gen Prompt</button>
+      <button id="genArtBtn" class="green" onclick="generatePixelArt()">Gen Image</button>
+      <button id="copyBtn" class="secondary" onclick="copyText()">Copy</button>
+      <button id="saveBtn" class="yellow" onclick="saveProject()">Save</button>
+    </div>
+
+    <div class="card">
+      <label>Filename: <span id="filenameEl" class="filename-display">none</span></label>
+      <div id="outputEl">Ready...</div>
+    </div>
+
+    <div class="card">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('edit')">Editor</div>
+        <div class="tab" onclick="switchTab('slice')">Frame Slicer</div>
+        <div class="tab" onclick="switchTab('tile')">Tile Preview</div>
+        <div class="tab" onclick="switchTab('manifold')">Manifold Import</div>
+      </div>
+      
+      <div id="loadingEl" hidden>⏳ Generating... up to 60s</div>
+      <img id="artOutputImg" style="max-width:100%; border-radius:4px; border:1px solid var(--border); display:none; margin-bottom:10px;">
+      
+      <!-- EDIT TAB -->
+      <div id="editTab">
+        <div class="canvas-container"><canvas id="spriteCanvasEl"></canvas></div>
+        <div class="editor-controls">
+          <div class="control-group">
+            <button onclick="undo()" style="padding:4px 8px;">↶ Undo</button>
+            <button onclick="redo()" style="padding:4px 8px;">↷ Redo</button>
+          </div>
+          <div class="control-group">
+            <button onclick="setSpriteTool('pencil')" class="tool-btn active" id="pencilBtn" style="padding:4px 8px;">✏️</button>
+            <button onclick="setSpriteTool('eraser')" class="tool-btn" id="eraserBtn" style="padding:4px 8px;">🧹</button>
+            <button onclick="setSpriteTool('picker')" class="tool-btn" id="pickerBtn" style="padding:4px 8px;">💉</button>
+            <button onclick="setSpriteTool('fill')" class="tool-btn" id="fillBtn" style="padding:4px 8px;">🪣</button>
+          </div>
+          <div class="control-group">
+            <label>Color:</label><input type="color" id="spriteColor" value="#000000">
+            <label>Size:</label><input type="range" id="brushSize" min="1" max="32" value="1">
+          </div>
+          <div class="control-group">
+            <label>Scale:</label><input type="range" id="scaleInput" min="0.25" max="8" step="0.25" value="1" oninput="scaleValEl.textContent=this.value+'x'">
+            <span id="scaleValEl">1x</span><button onclick="applyResize()" style="padding:2px 6px;">Apply</button>
+          </div>
+          <div class="control-group">
+            <label>BG:</label><input type="color" id="bgColorInput" value="#ffffff">
+            <label>Tol:</label><input type="range" id="toleranceInput" min="1" max="200" value="30" style="width:40px;">
+            <button class="red" onclick="removeBackground()" style="padding:2px 6px;">Kill BG</button>
+          </div>
+          <div class="control-group">
+            <button onclick="flipH()" style="padding:2px 6px;">Flip H</button>
+            <button onclick="rotate90()" style="padding:2px 6px;">90°</button>
+          </div>
+          <button class="green" onclick="downloadSprite()">Save PNG</button>
+        </div>
+      </div>
+      
+      <!-- SLICE TAB -->
+      <div id="sliceTab" class="hidden">
+        <div class="control-group" style="margin-bottom:10px;">
+          <label>Cols:</label><input type="number" id="sliceCols" value="4" min="1" max="16" style="width:50px;">
+          <label>Rows:</label><input type="number" id="sliceRows" value="1" min="1" max="16" style="width:50px;">
+          <button onclick="sliceFrames()" class="green">Slice Sheet</button>
+        </div>
+        <div id="slicePreview" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
+      </div>
+      
+      <!-- TILE TAB -->
+      <div id="tileTab" class="hidden">
+        <p style="font-size:0.8em; margin:0 0 10px 0;">Check if your environment tile seams are invisible:</p>
+        <div class="canvas-container" style="justify-content:center;">
+          <canvas id="tilePreviewCanvas" width="192" height="192"></canvas>
+        </div>
+        <div class="editor-controls">
+          <div class="control-group">
+            <label>Zoom:</label><input type="range" id="tileZoom" min="1" max="4" step="0.5" value="2" oninput="updateTilePreview()">
+            <button class="green" onclick="downloadTilePreview()">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MANIFOLD TAB -->
+      <div id="manifoldTab" class="hidden">
+        <label>Base64 from Sultan 47 Go Engine</label>
+        <textarea id="base64Input" rows="4" placeholder="Paste BASE64 MANIFOLD output from Go compiler..."></textarea>
+        <div class="control-group" style="margin-bottom:10px;">
+          <label>Width:</label><input type="number" id="manifoldW" value="32" min="8" max="128" style="width:60px;">
+          <label>Height:</label><input type="number" id="manifoldH" value="30" min="8" max="128" style="width:60px;">
+          <label>Mode:</label>
+          <select id="manifoldMode" style="width:auto;">
+            <option value="grayscale">Grayscale</option>
+            <option value="heatmap">Heat Map</option>
+            <option value="palette">P21 Palette</option>
+          </select>
+        </div>
+        <div class="btn-group">
+          <button class="purple" onclick="importManifold()">Import Manifold</button>
+          <button class="secondary" onclick="verifyChecksum()">Verify Checksum</button>
+        </div>
+        <p id="manifoldStatus" class="mono" style="margin-top:10px; color:var(--silver);">Checksum: --- | Bytes: 0/960</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- COLLISION EDITOR TOOL -->
+  <div id="tool-collision" class="tool-panel hidden">
+    <div class="card">
+      <label>Load Sprite for Collision</label>
+      <div class="btn-group" style="margin-bottom:10px;">
+        <button class="secondary" onclick="loadFromAsset()">Use Current Asset</button>
+        <button class="secondary" onclick="document.getElementById('collisionUpload').click()">Upload Image</button>
+        <input type="file" id="collisionUpload" accept="image/*" style="display:none" onchange="handleCollisionUpload(this)">
+      </div>
+      
+      <div style="display:flex; gap:15px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:200px;">
+          <label>Collision Canvas (Click/Drag to draw)</label>
+          <div class="canvas-container" style="position:relative;">
+            <canvas id="collisionCanvas" width="256" height="256"></canvas>
+          </div>
+          <div class="editor-controls">
+            <div class="control-group">
+              <label>Type:</label>
+              <select id="collisionType" style="width:auto;">
+                <option value="box">Box</option>
+                <option value="circle">Circle</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label>Tag:</label>
+              <input type="text" id="collisionTag" value="body" style="width:70px; margin:0;">
+            </div>
+            <button class="red" onclick="clearCollisions()">Clear All</button>
+            <button class="green" onclick="exportCollisions()">Export JSON</button>
+          </div>
+        </div>
+        <div style="flex:1; min-width:200px;">
+          <label>Edit Background Image</label>
+          <div class="canvas-container">
+            <canvas id="collisionBgCanvas" width="256" height="256"></canvas>
+          </div>
+          <div class="editor-controls">
+            <div class="control-group">
+              <button onclick="undoCollisionBg()" style="padding:4px 8px;">↶ Undo</button>
+              <button onclick="clearCollisionBg()" style="padding:4px 8px;">Clear</button>
+            </div>
+            <div class="control-group">
+              <label>Color:</label><input type="color" id="collisionBgColor" value="#ffffff">
+              <label>Size:</label><input type="range" id="collisionBgSize" min="1" max="32" value="1">
+            </div>
+            <div class="control-group">
+              <label>BG:</label><input type="color" id="collisionBgRemove" value="#ffffff">
+              <button class="red" onclick="removeCollisionBg()" style="padding:2px 6px;">Kill BG</button>
+            </div>
+            <button class="green" onclick="applyCollisionBgToMain()">Apply to Main</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <label>Collision Data</label>
+        <textarea id="collisionOutput" rows="6" readonly class="mono" style="font-size:0.7em;"></textarea>
+      </div>
+    </div>
+  </div>
+  
+  <!-- PARTICLE SYSTEM TOOL -->
+  <div id="tool-particle" class="tool-panel hidden">
+    <div class="card">
+      <label>Particle Emitter Settings</label>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div>
+          <label>Particle Count</label>
+          <input type="range" id="particleCount" min="10" max="500" value="100" oninput="particleCountVal.textContent=this.value">
+          <span id="particleCountVal" class="mono">100</span>
+        </div>
+        <div>
+          <label>Lifetime (frames)</label>
+          <input type="range" id="particleLife" min="10" max="200" value="60" oninput="particleLifeVal.textContent=this.value">
+          <span id="particleLifeVal" class="mono">60</span>
+        </div>
+        <div>
+          <label>Speed X</label>
+          <input type="range" id="particleSpeedX" min="-10" max="10" value="2" step="0.5">
+        </div>
+        <div>
+          <label>Speed Y</label>
+          <input type="range" id="particleSpeedY" min="-10" max="10" value="-3" step="0.5">
+        </div>
+        <div>
+          <label>Spread</label>
+          <input type="range" id="particleSpread" min="0" max="5" value="1" step="0.1">
+        </div>
+        <div>
+          <label>Gravity</label>
+          <input type="range" id="particleGravity" min="-0.5" max="0.5" value="0.1" step="0.01">
+        </div>
+      </div>
+      <div class="control-group" style="margin-top:10px;">
+        <label>Color:</label><input type="color" id="particleColor" value="#ffcc00">
+        <label>Size:</label><input type="range" id="particleSize" min="1" max="20" value="4">
+        <label>Effect:</label>
+        <select id="particleEffect" style="width:auto;">
+          <option value="burst">Burst</option>
+          <option value="fountain">Fountain</option>
+          <option value="trail">Trail</option>
+          <option value="explosion">Explosion</option>
+        </select>
+      </div>
+      
+      <div class="btn-group" style="margin-top:10px;">
+        <button class="green" onclick="startParticles()">▶ Play</button>
+        <button class="secondary" onclick="stopParticles()">⏹ Stop</button>
+        <button class="purple" onclick="exportParticles()">Export Code</button>
+      </div>
+      
+      <div style="margin-top:10px;">
+        <label>Preview</label>
+        <canvas id="particleCanvas" class="particle-canvas" width="400" height="200"></canvas>
+      </div>
+      
+      <div style="margin-top:10px;">
+        <label>Generated Code</label>
+        <textarea id="particleCode" rows="6" readonly class="mono" style="font-size:0.7em;"></textarea>
+      </div>
+    </div>
+  </div>
+  
+  <!-- PALETTE GENERATOR TOOL -->
+  <div id="tool-palette" class="tool-panel hidden">
+    <div class="card">
+      <label>Generate Game Color Palette</label>
+      <div class="control-group" style="margin-bottom:10px;">
+        <label>Base Color:</label><input type="color" id="paletteBaseColor" value="#007bff">
+        <label>Scheme:</label>
+        <select id="paletteScheme" style="width:auto;">
+          <option value="analogous">Analogous</option>
+          <option value="complementary">Complementary</option>
+          <option value="triadic">Triadic</option>
+          <option value="tetradic">Tetradic</option>
+          <option value="monochromatic">Monochromatic</option>
+          <option value="game">Game (8-color)</option>
+        </select>
+        <button class="green" onclick="generatePalette()">Generate</button>
+      </div>
+      
+      <div id="generatedPalette" style="display:flex; flex-wrap:wrap; gap:10px; margin:15px 0; min-height:40px;"></div>
+      
+      <label>Palette Preview</label>
+      <div id="paletteTestArt" style="width:100%; height:120px; border:1px solid var(--border); border-radius:4px; background:repeating-conic-gradient(#333 0% 25%, #222 0% 50%) 50% / 20px 20px; display:flex; align-items:center; justify-content:center;">
+        <canvas id="paletteTestCanvas" width="200" height="80"></canvas>
+      </div>
+      
+      <div class="btn-group" style="margin-top:10px;">
+        <button class="secondary" onclick="copyPaletteColors()">Copy Colors</button>
+        <button class="yellow" onclick="savePalette()">Save Palette</button>
+        <button class="purple" onclick="loadPalette()">Load Saved</button>
+      </div>
+      
+      <div style="margin-top:10px;">
+        <label>Saved Palettes</label>
+        <div id="savedPalettesList" style="max-height:100px; overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- FONT PREVIEW TOOL -->
+  <div id="tool-font" class="tool-panel hidden">
+    <div class="card">
+      <label>Font Preview</label>
+      <textarea id="fontTextInput" rows="2" placeholder="Type to preview..." oninput="updateFontPreview()">Sultan 47 Mobile</textarea>
+      
+      <div class="control-group" style="margin:10px 0;">
+        <label>Size:</label><input type="range" id="fontSize" min="8" max="72" value="24" oninput="updateFontPreview()">
+        <label>Color:</label><input type="color" id="fontColor" value="#ffffff" oninput="updateFontPreview()">
+        <label>Style:</label>
+        <select id="fontStyle" style="width:auto;" onchange="updateFontPreview()">
+          <option value="normal">Normal</option>
+          <option value="bold">Bold</option>
+          <option value="italic">Italic</option>
+        </select>
+      </div>
+      
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <label>Font Family:</label>
+        <button class="secondary" onclick="setFontFamily('system-ui')">System</button>
+        <button class="secondary" onclick="setFontFamily('monospace')">Mono</button>
+        <button class="secondary" onclick="setFontFamily('cursive')">Cursive</button>
+        <button class="secondary" onclick="setFontFamily('fantasy')">Fantasy</button>
+      </div>
+      
+      <div style="margin-top:15px; background:var(--input-bg); padding:15px; border-radius:4px; border:1px solid var(--border);">
+        <canvas id="fontCanvas" width="400" height="100"></canvas>
+      </div>
+      
+      <div class="btn-group" style="margin-top:10px;">
+        <button class="green" onclick="downloadFontPreview()">Download PNG</button>
+        <button class="purple" onclick="exportFontCSS()">Export CSS</button>
+      </div>
+      
+      <div style="margin-top:10px;">
+        <label>CSS Output</label>
+        <textarea id="fontCSSOutput" rows="4" readonly class="mono" style="font-size:0.7em;"></textarea>
+      </div>
+    </div>
+  </div>
+  
+  <!-- SPRITE PACKER TOOL -->
+  <div id="tool-packer" class="tool-panel hidden">
+    <div class="card">
+      <label>Add Sprites to Pack</label>
+      <div class="btn-group" style="margin-bottom:10px;">
+        <button class="green" onclick="document.getElementById('packerUpload').click()">+ Add Images</button>
+        <button class="secondary" onclick="document.getElementById('packerAddAsset').click()">+ Add Current Asset</button>
+        <button class="red" onclick="clearPacker()">Clear All</button>
+        <input type="file" id="packerUpload" accept="image/*" multiple style="display:none" onchange="handlePackerUpload(this)">
+        <input type="file" id="packerAddAsset" style="display:none" onchange="handlePackerAddAsset(this)">
+      </div>
+      
+      <div class="control-group" style="margin-bottom:10px;">
+        <label>Padding:</label><input type="number" id="packerPadding" value="2" min="0" max="16" style="width:50px;">
+        <label>Algorithm:</label>
+        <select id="packerAlgo" style="width:auto;">
+          <option value="basic">Basic Grid</option>
+          <option value="smart">Smart Pack</option>
+        </select>
+        <button class="purple" onclick="packSprites()">Pack Sheet</button>
+      </div>
+      
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <div>
+          <label>Source Sprites (<span id="spriteCount">0</span>)</label>
+          <div id="packerSource" style="max-height:200px; overflow-y:auto; background:var(--input-bg); padding:10px; border-radius:4px; border:1px solid var(--border); display:flex; flex-wrap:wrap; gap:5px;"></div>
+        </div>
+        <div>
+          <label>Packed Sheet</label>
+          <div class="canvas-container">
+            <canvas id="packerCanvas" width="256" height="256"></canvas>
+          </div>
+          <div class="editor-controls">
+            <div class="control-group">
+              <button onclick="undoPacker()" style="padding:4px 8px;">↶ Undo</button>
+              <button onclick="clearPackerCanvas()" style="padding:4px 8px;">Clear</button>
+            </div>
+            <div class="control-group">
+              <label>Color:</label><input type="color" id="packerColor" value="#ffffff">
+              <label>Size:</label><input type="range" id="packerSize" min="1" max="32" value="1">
+            </div>
+            <div class="control-group">
+              <label>Scale:</label><input type="range" id="packerScale" min="0.5" max="4" step="0.25" value="1" oninput="packerScaleVal.textContent=this.value+'x'">
+              <span id="packerScaleVal">1x</span>
+              <button onclick="applyPackerResize()" style="padding:2px 6px;">Apply</button>
+            </div>
+            <button class="green" onclick="downloadPackedSheet()">Download</button>
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-top:10px;">
+        <label>Atlas JSON</label>
+        <textarea id="packerJSON" rows="6" readonly class="mono" style="font-size:0.7em;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- SFX SYNTH TOOL (NEW) -->
+  <div id="tool-sfx" class="tool-panel hidden">
+    <div class="card">
+      <label>8-Bit SFX Synthesizer</label>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div>
+          <label>Waveform</label>
+          <select id="sfxWave">
+            <option value="square">Square (Retro)</option>
+            <option value="sawtooth">Sawtooth (Harsh)</option>
+            <option value="sine">Sine (Soft)</option>
+            <option value="triangle">Triangle (Flute)</option>
+          </select>
+        </div>
+        <div>
+          <label>Duration (s)</label>
+          <input type="number" id="sfxDuration" value="0.1" step="0.05" min="0.01" max="2.0">
+        </div>
+        <div>
+          <label>Start Freq (Hz)</label>
+          <input type="number" id="sfxFreqStart" value="440" step="10">
+        </div>
+        <div>
+          <label>End Freq (Hz)</label>
+          <input type="number" id="sfxFreqEnd" value="110" step="10">
+        </div>
+        <div>
+          <label>Volume</label>
+          <input type="range" id="sfxVol" min="0" max="1" step="0.1" value="0.5">
+        </div>
+        <div>
+          <label>Decay</label>
+          <input type="range" id="sfxDecay" min="0" max="1" step="0.1" value="0.1">
+        </div>
+      </div>
+
+      <div class="btn-group" style="margin-top:10px;">
+        <button class="green" onclick="playSFX()">▶ Play</button>
+        <button class="purple" onclick="exportSFXCode()">Export JS</button>
+      </div>
+
+      <div style="margin-top:10px; background:#000; padding:10px; border-radius:4px; border:1px solid #333;">
+        <canvas id="sfxCanvas" width="300" height="80" style="width:100%; height:auto;"></canvas>
+      </div>
+      
+      <div style="margin-top:10px;">
+        <label>Generated Code</label>
+        <textarea id="sfxCode" rows="5" readonly class="mono" style="font-size:0.7em;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA EDITOR TOOL (NEW) -->
+  <div id="tool-data" class="tool-panel hidden">
+    <div class="card">
+      <label>Game Data / Level Editor</label>
+      <div class="data-row" style="margin-bottom:10px; font-weight:bold; font-size:0.8em; color:var(--silver);">
+        <span>Key</span><span>Value</span><span>Type</span><span></span>
+      </div>
+      <div id="dataListContainer" style="max-height:300px; overflow-y:auto; margin-bottom:10px;"></div>
+      
+      <div class="btn-group" style="margin-bottom:10px;">
+        <button class="green" onclick="addDataRow()">+ Add Row</button>
+        <button class="red" onclick="clearData()">Clear All</button>
+      </div>
+
+      <div class="control-group" style="margin-bottom:10px;">
+        <button class="secondary" onclick="loadSampleData()">Load Sample</button>
+        <button class="purple" onclick="exportGameData()">Export JSON</button>
+      </div>
+      
+      <div>
+        <label>JSON Output</label>
+        <textarea id="dataOutput" rows="8" class="mono" style="font-size:0.7em;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- SYMBOL MAP TOOL (NEW) -->
+  <div id="tool-map" class="tool-panel hidden">
+    <div class="card">
+      <label>Symbol Map Input (ASCII Grid)</label>
+      <textarea id="mapInput" rows="10" class="mono" style="font-family:monospace; font-size:1.2em; line-height:1em; letter-spacing:0.5em; resize:none;" oninput="renderMap()">##..##
+..@@..
+..xx..
+##..##</textarea>
+      
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+        <div>
+          <label>Symbol-Color Mapping</label>
+          <div id="mapMappingList" style="display:flex; flex-direction:column; gap:5px; max-height:200px; overflow-y:auto;"></div>
+          <button class="secondary" onclick="addMapMapping()" style="margin-top:5px;">+ Add Rule</button>
+        </div>
+        <div>
+          <label>Preview & Edit</label>
+          <div class="canvas-container" style="min-height:200px;">
+              <canvas id="mapCanvas"></canvas>
+          </div>
+          <div class="editor-controls">
+            <div class="control-group">
+              <button onclick="undoMap()" style="padding:4px 8px;">↶ Undo</button>
+              <button onclick="clearMapCanvas()" style="padding:4px 8px;">Clear</button>
+            </div>
+            <div class="control-group">
+              <label>Color:</label><input type="color" id="mapDrawColor" value="#ffffff">
+              <label>Size:</label><input type="range" id="mapDrawSize" min="1" max="32" value="1">
+            </div>
+            <div class="control-group">
+              <button onclick="setMapTool('paint')" class="tool-btn active" id="mapPaintBtn" style="padding:4px 8px;">🖌️ Paint</button>
+              <button onclick="setMapTool('erase')" class="tool-btn" id="mapEraseBtn" style="padding:4px 8px;">🧹 Erase</button>
+              <button onclick="setMapTool('picker')" class="tool-btn" id="mapPickerBtn" style="padding:4px 8px;">💉 Pick</button>
+            </div>
+            <div class="control-group">
+              <label>Cell Size:</label>
+              <input type="range" id="mapCellSize" min="4" max="64" value="32" oninput="renderMap()">
+              <span id="mapCellSizeVal" class="mono">32px</span>
+            </div>
+            <button class="green" onclick="downloadMap()">Save PNG</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:10px; background: #151515;">
+        <label>Pixel Inspector (Click Map)</label>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap:10px;">
+          <div class="control-group">
+              <label>Symbol:</label> <span id="inspSymbol" class="mono" style="font-size:1.2em;">-</span>
+          </div>
+          <div class="control-group">
+              <label>Color:</label> 
+              <div style="display:flex; align-items:center; gap:5px;">
+                <span id="inspColor" class="mono">#000000</span>
+                <div id="inspColorBox" style="width:20px; height:20px; border:1px solid #fff; background:#000;"></div>
+              </div>
+          </div>
+          <div class="control-group">
+              <label>Decimal:</label> <span id="inspDec" class="mono">0</span>
+          </div>
+          <div class="control-group">
+              <label>Hex:</label> <span id="inspHex" class="mono">0x000000</span>
+          </div>
+          <div class="control-group" style="grid-column: span 2; background:#222; padding:5px;">
+              <label>Binary:</label> <span id="inspBin" class="mono" style="word-break:break-all;">00000000 00000000 00000000</span>
+          </div>
+        </div>
+      </div>
+      <div class="btn-group" style="margin-top:10px;">
+        <button class="secondary" onclick="exportMapData()">Export Data</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- CONFIG ---
+const NEGATIVE = "\n\nNegative: blurry, realistic, 3D, anti-aliased, noisy, jpeg artifacts, extra limbs, watermark, text, signature, out of frame.";
+const ANCHOR = "Style Anchor: 16-bit SNES pixel art, crisp silhouettes, clean edges, limited color palette.";
+const PALETTE = ['#000000','#FFFFFF','#007BFF','#C0C0C0','#DC3545','#003399','#808080','#FFD700'];
+const PALETTE_NAMES = ['Black','White','Blue','Silver','Red','Navy','Gray','Gold'];
+const P21_PALETTE = [[0,0,0],[255,255,255],[0,123,255],[192,192,192],[220,53,69],[0,51,153],[128,128,128],[255,215,0]];
+
+// --- STATE ---
+let editorSourceImage = null;
+let undoStack = [], redoStack = [];
+let currentProject = {};
+let currentTool = 'asset';
+let spriteTool = 'pencil';
+let isDrawingSprite = false;
+
+// Collision State
+let collisions = [];
+let collisionImage = null;
+let isDrawingCollision = false;
+let collisionStart = {x:0, y:0};
+let collisionBgUndoStack = [];
+
+// Particle State
+let particles = [];
+let particleAnimationId = null;
+
+// Packer State
+let packerSprites = [];
+let packerUndoStack = [];
+let isDrawingPacker = false;
+
+// Data State
+let gameData = [];
+
+// Map Tool State
+let mapMappings = { '#': '#c0c0c0', '.': '#000000', '@': '#007bff', 'x': '#dc3545' }; // Default mappings
+let mapUndoStack = [];
+let mapTool = 'paint';
+let isDrawingMap = false;
+
+// --- INIT ---
+window.onload = () => {
+  updateUI();
+  renderPalette();
+  loadProject();
+  initCollisionCanvas();
+  initParticleCanvas();
+  initPacker();
+  initSFXTool();
+  initDataTool();
+  initMapTool();
+  initSpriteEditor();
+  initPackerEditor();
+  initCollisionBgEditor();
+};
+
+function renderPalette() {
+  palettePreview.innerHTML = PALETTE.map((c,i) => 
+    `<div class="palette-swatch" style="background:${c}" title="${PALETTE_NAMES[i]}: ${c}"></div>`
+  ).join('');
+}
+
+// --- WORKFLOW TOOLS ---
+function setTool(tool) {
+  currentTool = tool;
+  document.querySelectorAll('.tool-card').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tool-panel').forEach(p=>p.classList.add('hidden'));
+  document.querySelector(`.tool-card[onclick="setTool('${tool}')"]`).classList.add('active');
+  document.getElementById(`tool-${tool}`).classList.remove('hidden');
+  
+  if(tool === 'collision' && editorSourceImage) loadFromAsset();
+  if(tool === 'particle') drawParticlePreview();
+  if(tool === 'sfx') drawSFXVisualizer();
+  if(tool === 'map') renderMap();
+}
+
+// --- UI LOGIC ---
+function updateUI() {
+  const cat = categorySelect.value;
+  const placeholders = {
+    char: "e.g. Throwing, Tackling, Victory Dance",
+    ui: "e.g. Pause Button, Score HUD, Health Bar", 
+    env: "e.g. Turf Tile, Sideline, End Zone",
+    fx: "e.g. Dust Cloud, Speed Lines, Impact",
+    item: "e.g. Football, Helmet, Trophy",
+    proc: "Manifold_072AE380"
+  };
+  subjectInput.placeholder = placeholders[cat] || "Describe asset";
+  if(cat==='proc') { switchTab('manifold'); document.querySelector('.tab:last-child').click(); }
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('[id$="Tab"]').forEach(t=>t.classList.add('hidden'));
+  event.target.classList.add('active');
+  document.getElementById(tab+'Tab').classList.remove('hidden');
+  if(tab==='tile') updateTilePreview();
+}
+
+// --- PROMPT GENERATION ---
+function generatePrompt() {
+  const cat = categorySelect.value, sub = subjectInput.value.trim() || "Asset";
+  const frames = framesSelect.value, res = resSelect.value, tags = tagsInput.value.trim();
+  const fileEl = filenameEl, outputEl = document.getElementById('outputEl');
+  
+  let frameText = frames === 'single' ? "Standalone sprite" : `${frames}-frame horizontal sprite sheet`;
+  let paletteText = `Strict palette: ${PALETTE.join(', ')}. Player #21 blue/silver/red primary.`;
+  
+  let prompt = `Task: ${frameText} for 2D football game.\nSubject: ${sub}.\n${ANCHOR}\n${paletteText}\n`;
+  prompt += `Technical: ${res}x${res}px per frame, transparent background, production-ready, pixel perfect.`;
+  if(tags) prompt += `\nTags: ${tags}`;
+  if(cat==='proc') prompt += `\nSource: Sultan 47 Manifold 072AE380, 960-byte geometric texture.`;
+  
+  const fname = `${cat}_${sub.toLowerCase().replace(/[^a-z0-9]/g,'_')}_${res}px${frames!=='single'?'_sheet':''}`;
+  fileEl.innerText = fname;
+  outputEl.innerText = prompt + NEGATIVE;
+  
+  currentProject = {cat, sub, frames, res, tags, prompt: outputEl.innerText, fname};
+  saveState();
+}
+
+function copyText() {
+  navigator.clipboard.writeText(outputEl.innerText);
+  copyBtn.innerText = "Copied!"; setTimeout(()=>copyBtn.innerText="Copy", 1500);
+}
+
+// --- IMAGE GEN + EDITOR ---
+async function generatePixelArt() {
+  if(!outputEl.innerText || outputEl.innerText==="Ready...") { alert("Generate a prompt first"); return; }
+  genArtBtn.disabled = true; loadingEl.hidden = false;
+  try {
+    let dataUrl = await generateImage(outputEl.innerText, {resolution:"768x768"});
+    artOutputImg.src = dataUrl; artOutputImg.style.display = "block";
+    editorSourceImage = new Image();
+    editorSourceImage.onload = () => { drawEditorCanvas(1); saveState(); updateTilePreview(); };
+    editorSourceImage.src = dataUrl;
+  } catch(e) { alert("Image gen failed: " + e); }
+  finally { genArtBtn.disabled = false; loadingEl.hidden = true; }
+}
+
+function saveState() {
+  if(!spriteCanvasEl.width) return;
+  undoStack.push(spriteCanvasEl.toDataURL()); 
+  if(undoStack.length>20) undoStack.shift();
+  redoStack = [];
+}
+
+function undo() {
+  if(undoStack.length<2) return;
+  redoStack.push(undoStack.pop());
+  let img = new Image(); img.onload = () => {
+    spriteCanvasEl.width = img.width; spriteCanvasEl.height = img.height;
+    spriteCanvasEl.getContext("2d").drawImage(img,0,0);
+  }; img.src = undoStack[undoStack.length-1];
+}
+
+function redo() {
+  if(!redoStack.length) return;
+  let data = redoStack.pop(); undoStack.push(data);
+  let img = new Image(); img.onload = () => {
+    spriteCanvasEl.width = img.width; spriteCanvasEl.height = img.height;
+    spriteCanvasEl.getContext("2d").drawImage(img,0,0);
+  }; img.src = data;
+}
+
+function setSpriteTool(tool) {
+  spriteTool = tool;
+  document.querySelectorAll('#editTab .tool-btn').forEach(b=>b.classList.remove('active'));
+  if(tool === 'pencil') pencilBtn.classList.add('active');
+  if(tool === 'eraser') eraserBtn.classList.add('active');
+  if(tool === 'picker') pickerBtn.classList.add('active');
+  if(tool === 'fill') fillBtn.classList.add('active');
+}
+
+function initSpriteEditor() {
+  let c = spriteCanvasEl, ctx = c.getContext("2d");
+  
+  c.onmousedown = (e) => {
+    if(spriteTool === 'fill') { floodFill(e); return; }
+    if(spriteTool === 'picker') { pickColor(e); return; }
+    isDrawingSprite = true;
+    drawSpritePixel(e);
+  };
+  
+  c.onmousemove = (e) => {
+    if(!isDrawingSprite || spriteTool === 'fill' || spriteTool === 'picker') return;
+    drawSpritePixel(e);
+  };
+  
+  c.onmouseup = () => {
+    if(isDrawingSprite) saveState();
+    isDrawingSprite = false;
+  };
+  
+  c.onmouseleave = () => {
+    if(isDrawingSprite) saveState();
+    isDrawingSprite = false;
+  };
+}
+
+function drawSpritePixel(e) {
+  let c = spriteCanvasEl, ctx = c.getContext("2d");
+  let rect = c.getBoundingClientRect();
+  let scaleX = c.width / rect.width, scaleY = c.height / rect.height;
+  let x = Math.floor((e.clientX - rect.left) * scaleX);
+  let y = Math.floor((e.clientY - rect.top) * scaleY);
+  let size = +brushSize.value;
+  
+  if(spriteTool === 'eraser') {
+    ctx.clearRect(x, y, size, size);
+  } else {
+    ctx.fillStyle = spriteColor.value;
+    ctx.fillRect(x, y, size, size);
+  }
+}
+
+function pickColor(e) {
+  let c = spriteCanvasEl, ctx = c.getContext("2d");
+  let rect = c.getBoundingClientRect();
+  let scaleX = c.width / rect.width, scaleY = c.height / rect.height;
+  let x = Math.floor((e.clientX - rect.left) * scaleX);
+  let y = Math.floor((e.clientY - rect.top) * scaleY);
+  let p = ctx.getImageData(x, y, 1, 1).data;
+  spriteColor.value = "#" + [p[0],p[1],p[2]].map(v=>v.toString(16).padStart(2,'0')).join('');
+  setSpriteTool('pencil');
+}
+
+function floodFill(e) {
+  let c = spriteCanvasEl, ctx = c.getContext("2d");
+  let rect = c.getBoundingClientRect();
+  let scaleX = c.width / rect.width, scaleY = c.height / rect.height;
+  let x = Math.floor((e.clientX - rect.left) * scaleX);
+  let y = Math.floor((e.clientY - rect.top) * scaleY);
+  
+  let img = ctx.getImageData(0,0,c.width,c.height);
+  let px = img.data;
+  let targetColor = getPixel(px, x, y, c.width);
+  let fillColor = hexToRgb(spriteColor.value);
+  
+  if(colorsMatch(targetColor, fillColor)) return;
+  
+  let stack = [[x,y]];
+  let w = c.width, h = c.height;
+  
+  while(stack.length) {
+    let [cx, cy] = stack.pop();
+    if(cx < 0 || cx >= w || cy < 0 || cy >= h) continue;
+    let current = getPixel(px, cx, cy, w);
+    if(!colorsMatch(current, targetColor)) continue;
+    
+    setPixel(px, cx, cy, w, fillColor);
+    stack.push([cx+1,cy], [cx-1,cy], [cx,cy+1], [cx,cy-1]);
+  }
+  
+  ctx.putImageData(img,0,0);
+  saveState();
+}
+
+function getPixel(px, x, y, w) {
+  let i = (y * w + x) * 4;
+  return [px[i], px[i+1], px[i+2], px[i+3]];
+}
+
+function setPixel(px, x, y, w, color) {
+  let i = (y * w + x) * 4;
+  px[i] = color[0]; px[i+1] = color[1]; px[i+2] = color[2]; px[i+3] = 255;
+}
+
+function colorsMatch(a, b) {
+  return Math.abs(a[0]-b[0]) < 10 && Math.abs(a[1]-b[1]) < 10 && Math.abs(a[2]-b[2]) < 10;
+}
+
+function hexToRgb(hex) {
+  let r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return [r,g,b,255];
+}
+
+function drawEditorCanvas(scale) {
+  if (!editorSourceImage) return;
+  let c = spriteCanvasEl, ctx = c.getContext("2d");
+  c.width = editorSourceImage.width * scale; c.height = editorSourceImage.height * scale;
+  ctx.imageSmoothingEnabled = false; ctx.drawImage(editorSourceImage, 0, 0, c.width, c.height);
+  saveState();
+}
+
+function applyResize() { drawEditorCanvas(parseFloat(scaleInput.value)); }
+
+function removeBackground() {
+  let c = spriteCanvasEl, ctx = c.getContext("2d");
+  if(!c.width) return; saveState();
+  let d = ctx.getImageData(0,0,c.width,c.height), px = d.data;
+  let hex = bgColorInput.value, tr=parseInt(hex.slice(1,3),16), tg=parseInt(hex.slice(3,5),16), tb=parseInt(hex.slice(5,7),16);
+  let tol = +toleranceInput.value;
+  for(let i=0;i<px.length;i+=4) {
+    if(Math.abs(px[i]-tr)+Math.abs(px[i+1]-tg)+Math.abs(px[i+2]-tb) <= tol) px[i+3]=0;
+  }
+  ctx.putImageData(d,0,0);
+}
+
+function flipH() {
+  let c=spriteCanvasEl, ctx=c.getContext("2d"); saveState();
+  ctx.save(); ctx.scale(-1,1); ctx.drawImage(c,-c.width,0); ctx.restore();
+}
+
+function rotate90() {
+  let c=spriteCanvasEl, ctx=c.getContext("2d"); saveState();
+  let tmp = document.createElement('canvas'); tmp.width=c.height; tmp.height=c.width;
+  let tctx=tmp.getContext("2d"); tctx.save(); tctx.translate(tmp.width/2,tmp.height/2); 
+  tctx.rotate(Math.PI/2); tctx.drawImage(c,-c.width/2,-c.height/2); tctx.restore();
+  c.width=tmp.width; c.height=tmp.height; ctx.drawImage(tmp,0,0);
+}
+
+function downloadSprite() {
+  if(!spriteCanvasEl.width) return alert("Nothing to save");
+  let a=document.createElement("a"); a.download=(filenameEl.innerText||"asset")+".png";
+  a.href=spriteCanvasEl.toDataURL("image/png"); a.click();
+}
+
+// --- FRAME SLICER ---
+function sliceFrames() {
+  if(!spriteCanvasEl.width) return alert("Generate image first");
+  let cols=+sliceCols.value, rows=+sliceRows.value;
+  let w=spriteCanvasEl.width/cols, h=spriteCanvasEl.height/rows;
+  slicePreview.innerHTML='';
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) {
+    let frame=document.createElement('canvas'); frame.width=w; frame.height=h;
+    frame.getContext("2d").drawImage(spriteCanvasEl,c*w,r*h,w,h,0,0,w,h);
+    frame.style.cssText='border:1px solid #555; image-rendering:pixelated; width:64px;';
+    frame.title=`frame_${r}_${c}.png`; frame.onclick=()=>downloadFrame(frame,`${filenameEl.innerText}_f${r}${c}`);
+    slicePreview.appendChild(frame);
+  }
+}
+
+function downloadFrame(canvasEl,name) {
+  let a=document.createElement("a"); a.download=name+".png"; a.href=canvasEl.toDataURL(); a.click();
+}
+
+// --- TILE PREVIEW ---
+function updateTilePreview() {
+  let zoom = +tileZoom.value;
+  let c = tilePreviewCanvas, ctx = c.getContext("2d");
+  if(spriteCanvasEl.width) {
+    let pattern = ctx.createPattern(spriteCanvasEl, 'repeat');
+    ctx.fillStyle = pattern;
+    ctx.fillRect(0,0,c.width,c.height);
+  } else {
+    ctx.clearRect(0,0,c.width,c.height);
+  }
+}
+
+function downloadTilePreview() {
+  let a = document.createElement("a");
+  a.download = "tile_preview.png";
+  a.href = tilePreviewCanvas.toDataURL();
+  a.click();
+}
+
+// --- MANIFOLD IMPORT ---
+function base64ToBytes(b64) {
+  try {
+    let bin = atob(b64.trim());
+    let bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  } catch(e) { return null; }
+}
+
+function checksum(bytes) {
+  let s = 0;
+  for(let i=0;i<bytes.length;i++) s = (s << 1) ^ bytes[i];
+  return s >>> 0; // uint32
+}
+
+function importManifold() {
+  const b64 = base64Input.value.trim();
+  if(!b64) return alert("Paste BASE64 MANIFOLD from Go output");
+  const bytes = base64ToBytes(b64);
+  if(!bytes || bytes.length !== 960) return alert(`Invalid manifold: expected 960 bytes, got ${bytes?.length||0}`);
+  
+  const w = +manifoldW.value, h = +manifoldH.value;
+  if(w*h !== 960) return alert(`Width*Height must equal 960. Got ${w*h}`);
+  
+  const mode = manifoldMode.value;
+  const c = spriteCanvasEl, ctx = c.getContext("2d");
+  c.width = w; c.height = h;
+  const img = ctx.createImageData(w, h);
+  
+  for(let i=0;i<960;i++) {
+    const v = bytes[i];
+    let r,g,b;
+    if(mode==='grayscale') {
+      r=g=b=v;
+    } else if(mode==='heatmap') {
+      if(v<64){r=0;g=v*4;b=255;}
+      else if(v<128){r=0;g=255;b=255-(v-64)*4;}
+      else if(v<192){r=(v-128)*4;g=255;b=0;}
+      else{r=255;g=255-(v-192)*4;b=0;}
+    } else {
+      const idx = Math.floor(v/32) % 8;
+      [r,g,b] = P21_PALETTE[idx];
+    }
+    img.data[i*4]=r; img.data[i*4+1]=g; img.data[i*4+2]=b; img.data[i*4+3]=255;
+  }
+  ctx.putImageData(img,0,0);
+  ctx.imageSmoothingEnabled = false;
+  
+  editorSourceImage = new Image();
+  editorSourceImage.src = c.toDataURL();
+  
+  const cs = checksum(bytes);
+  manifoldStatus.innerText = `Checksum: ${cs.toString(16).toUpperCase().padStart(8,'0')} | Bytes: 960/960 | Mode: ${mode}`;
+  manifoldStatus.style.color = cs === 0x072AE380 ? 'var(--green)' : 'var(--yellow)';
+  
+  filenameEl.innerText = `proc_manifold_${cs.toString(16)}`;
+  saveState();
+  updateTilePreview();
+  switchTab('edit');
+  document.querySelector('.tab').click();
+}
+
+function verifyChecksum() {
+  const b64 = base64Input.value.trim();
+  const bytes = base64ToBytes(b64);
+  if(!bytes) return alert("Invalid Base64");
+  const cs = checksum(bytes);
+  alert(`MANIFOLD CHECKSUM: ${cs.toString(16).toUpperCase().padStart(8,'0')}\nExpected: 072AE380\nMatch: ${cs===0x072AE380?'YES':'NO'}\nBytes: ${bytes.length}/960`);
+}
+
+// --- COLLISION EDITOR ---
+function initCollisionCanvas() {
+  let c = collisionCanvas, ctx = c.getContext("2d");
+  c.style.cursor = "crosshair";
+  c.onmousedown = (e) => {
+    let rect = c.getBoundingClientRect();
+    let scaleX = c.width / rect.width, scaleY = c.height / rect.height;
+    collisionStart = { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    isDrawingCollision = true;
+  };
+  c.onmousemove = (e) => {
+    if(!isDrawingCollision) return;
+    let rect = c.getBoundingClientRect();
+    let scaleX = c.width / rect.width, scaleY = c.height / rect.height;
+    let currX = (e.clientX - rect.left) * scaleX, currY = (e.clientY - rect.top) * scaleY;
+    drawCollisionCanvas();
+    ctx.strokeStyle = "#00ff00"; ctx.lineWidth = 2;
+    ctx.setLineDash([5,5]);
+    ctx.strokeRect(collisionStart.x, collisionStart.y, currX - collisionStart.x, currY - collisionStart.y);
+    ctx.setLineDash([]);
+  };
+  c.onmouseup = (e) => {
+    if(!isDrawingCollision) return;
+    isDrawingCollision = false;
+    let rect = c.getBoundingClientRect();
+    let scaleX = c.width / rect.width, scaleY = c.height / rect.height;
+    let currX = (e.clientX - rect.left) * scaleX, currY = (e.clientY - rect.top) * scaleY;
+    if(Math.abs(currX - collisionStart.x) > 5 && Math.abs(currY - collisionStart.y) > 5) {
+      collisions.push({
+        type: collisionType.value,
+        tag: collisionTag.value,
+        x: Math.min(collisionStart.x, currX),
+        y: Math.min(collisionStart.y, currY),
+        w: Math.abs(currX - collisionStart.x),
+        h: Math.abs(currY - collisionStart.y)
+      });
+    }
+    drawCollisionCanvas();
+    exportCollisions();
+  };
+}
+
+function initCollisionBgEditor() {
+  let c = collisionBgCanvas, ctx = c.getContext("2d");
+  
+  c.onmousedown = (e) => {
+    collisionBgUndoStack.push(c.toDataURL());
+    if(collisionBgUndoStack.length > 20) collisionBgUndoStack.shift();
+    isDrawingSprite = true;
+    drawCollisionBgPixel(e);
+  };
+  
+  c.onmousemove = (e) => {
+    if(!isDrawingSprite) return;
+    drawCollisionBgPixel(e);
+  };
+  
+  c.onmouseup = () => isDrawingSprite = false;
+  c.onmouseleave = () => isDrawingSprite = false;
+}
+
+function drawCollisionBgPixel(e) {
+  let c = collisionBgCanvas, ctx = c.getContext("2d");
+  let rect = c.getBoundingClientRect();
+  let scaleX = c.width / rect.width, scaleY = c.height / rect.height;
+  let x = Math.floor((e.clientX - rect.left) * scaleX);
+  let y = Math.floor((e.clientY - rect.top) * scaleY);
+  let size = +collisionBgSize.value;
+  
+  ctx.fillStyle = collisionBgColor.value;
+  ctx.fillRect(x, y, size, size);
+}
+
+function undoCollisionBg() {
+  if(collisionBgUndoStack.length === 0) return;
+  let img = new Image();
+  img.onload = () => {
+    let c = collisionBgCanvas, ctx = c.getContext("2d");
+    ctx.clearRect(0,0,c.width,c.height);
+    ctx.drawImage(img,0,0);
+  };
+  img.src = collisionBgUndoStack.pop();
+}
+
+function clearCollisionBg() {
+  let c = collisionBgCanvas, ctx = c.getContext("2d");
+  collisionBgUndoStack.push(c.toDataURL());
+  ctx.clearRect(0,0,c.width,c.height);
+}
+
+function removeCollisionBg() {
+  let c = collisionBgCanvas, ctx = c.getContext("2d");
+  if(!c.width) return; collisionBgUndoStack.push(c.toDataURL());
+  let d = ctx.getImageData(0,0,c.width,c.height), px = d.data;
+  let hex = collisionBgRemove.value, tr=parseInt(hex.slice(1,3),16), tg=parseInt(hex.slice(3,5),16), tb=parseInt(hex.slice(5,7),16);
+  let tol = 50;
+  for(let i=0;i<px.length;i+=4) {
+    if(Math.abs(px[i]-tr)+Math.abs(px[i+1]-tg)+Math.abs(px[i+2]-tb) <= tol) px[i+3]=0;
+  }
+  ctx.putImageData(d,0,0);
+}
+
+function applyCollisionBgToMain() {
+  let src = collisionBgCanvas, dst = spriteCanvasEl;
+  dst.width = src.width; dst.height = src.height;
+  dst.getContext("2d").drawImage(src,0,0);
+  saveState();
+}
+
+function loadFromAsset() {
+  if(!spriteCanvasEl.width) return alert("No asset loaded");
+  collisionImage = new Image();
+  collisionImage.onload = () => {
+    let c = collisionCanvas, bgC = collisionBgCanvas;
+    c.width = collisionImage.width;
+    c.height = collisionImage.height;
+    bgC.width = collisionImage.width;
+    bgC.height = collisionImage.height;
+    
+    bgC.getContext("2d").drawImage(collisionImage,0,0);
+    drawCollisionCanvas();
+  };
+  collisionImage.src = spriteCanvasEl.toDataURL();
+}
+
+function handleCollisionUpload(input) {
+  let file = input.files[0];
+  if(!file) return;
+  let reader = new FileReader();
+  reader.onload = (e) => {
+    collisionImage = new Image();
+    collisionImage.onload = () => {
+      let c = collisionCanvas, bgC = collisionBgCanvas;
+      c.width = collisionImage.width;
+      c.height = collisionImage.height;
+      bgC.width = collisionImage.width;
+      bgC.height = collisionImage.height;
+      
+      bgC.getContext("2d").drawImage(collisionImage,0,0);
+      drawCollisionCanvas();
+    };
+    collisionImage.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function drawCollisionCanvas() {
+  let c = collisionCanvas, ctx = c.getContext("2d");
+  ctx.clearRect(0,0,c.width,c.height);
+  if(collisionImage) {
+    ctx.globalAlpha = 0.5;
+    ctx.drawImage(collisionImage,0,0);
+    ctx.globalAlpha = 1;
+  }
+  collisions.forEach(col => {
+    ctx.strokeStyle = col.tag === "body" ? "#00ff00" : "#ff0000";
+    ctx.lineWidth = 2;
+    if(col.type === "box") {
+      ctx.strokeRect(col.x, col.y, col.w, col.h);
+    } else {
+      ctx.beginPath();
+      ctx.ellipse(col.x + col.w/2, col.y + col.h/2, col.w/2, col.h/2, 0, 0, Math.PI*2);
+      ctx.stroke();
+    }
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.font = "10px monospace";
+    ctx.fillText(col.tag, col.x, col.y - 5);
+  });
+}
+
+function clearCollisions() {
+  collisions = [];
+  drawCollisionCanvas();
+  exportCollisions();
+}
+
+function exportCollisions() {
+  let output = {
+    image: { width: collisionCanvas.width, height: collisionCanvas.height },
+    colliders: collisions.map(c => ({
+      type: c.type,
+      tag: c.tag,
+      x: Math.round(c.x),
+      y: Math.round(c.y),
+      width: Math.round(c.w),
+      height: Math.round(c.h)
+    }))
+  };
+  collisionOutput.value = JSON.stringify(output, null, 2);
+}
+
+// --- PARTICLE SYSTEM ---
+function initParticleCanvas() {
+  drawParticlePreview();
+}
+
+function drawParticlePreview() {
+  let c = particleCanvas, ctx = c.getContext("2d");
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0,0,c.width,c.height);
+}
+
+class Particle {
+  constructor(x, y, effect) {
+    this.x = x; this.y = y;
+    this.life = +particleLife.value;
+    this.maxLife = this.life;
+    this.size = +particleSize.value * (0.5 + Math.random() * 0.5);
+    this.color = particleColor.value;
+    let speedX = +particleSpeedX.value;
+    let speedY = +particleSpeedY.value;
+    let spread = +particleSpread.value;
+    
+    if(effect === "burst") {
+      let angle = Math.random() * Math.PI * 2;
+      let speed = 2 + Math.random() * 3;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+    } else if(effect === "fountain") {
+      this.vx = (Math.random() - 0.5) * spread;
+      this.vy = -speedY - Math.random() * 2;
+    } else if(effect === "explosion") {
+      let angle = Math.random() * Math.PI * 2;
+      let speed = 3 + Math.random() * 5;
+      this.vx = Math.cos(angle) * speed;
+      this.vy = Math.sin(angle) * speed;
+    } else {
+      this.vx = speedX + (Math.random() - 0.5) * spread;
+      this.vy = speedY + (Math.random() - 0.5) * spread;
+    }
+  }
+  
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vy += +particleGravity.value;
+    this.life--;
+    return this.life > 0;
+  }
+  
+  draw(ctx) {
+    let alpha = this.life / this.maxLife;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * alpha, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+function startParticles() {
+  stopParticles();
+  let effect = particleEffect.value;
+  let count = +particleCount.value;
+  let c = particleCanvas;
+  
+  function emit() {
+    if(effect === "burst" || effect === "explosion") {
+      for(let i=0; i<count; i++) {
+        particles.push(new Particle(c.width/2, c.height/2, effect));
+      }
+    } else {
+      for(let i=0; i<3; i++) {
+        particles.push(new Particle(c.width/2, c.height - 20, effect));
+      }
+    }
+  }
+  
+  function animate() {
+    let ctx = c.getContext("2d");
+    ctx.fillStyle = "rgba(0,0,0,0.2)";
+    ctx.fillRect(0,0,c.width,c.height);
+    
+    particles = particles.filter(p => {
+      let alive = p.update();
+      if(alive) p.draw(ctx);
+      return alive;
+    });
+    
+    if((effect === "fountain" || effect === "trail") && particles.length < count * 3) {
+      emit();
+    }
+    
+    particleAnimationId = requestAnimationFrame(animate);
+  }
+  
+  emit();
+  animate();
+}
+
+function stopParticles() {
+  if(particleAnimationId) {
+    cancelAnimationFrame(particleAnimationId);
+    particleAnimationId = null;
+  }
+  particles = [];
+  drawParticlePreview();
+}
+
+function exportParticles() {
+  let code = `// Particle System - ${particleEffect.value}
+const particles = [];
+const config = {
+  count: ${particleCount.value},
+  lifetime: ${particleLife.value},
+  speedX: ${particleSpeedX.value},
+  speedY: ${particleSpeedY.value},
+  gravity: ${particleGravity.value},
+  color: "${particleColor.value}",
+  size: ${particleSize.value}
+};
+
+function createParticle(x, y) {
+  return {
+    x, y,
+    life: config.lifetime,
+    vx: config.speedX + (Math.random() - 0.5) * ${particleSpread.value},
+    vy: config.speedY + (Math.random() - 0.5) * ${particleSpread.value}
+  };
+}
+
+function updateParticles() {
+  particles = particles.filter.p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += config.gravity;
+    p.life--;
+    return p.life > 0;
+  });
+}`;
+  particleCode.value = code;
+}
+
+// --- PALETTE GENERATOR ---
+function generatePalette() {
+  let base = paletteBaseColor.value;
+  let scheme = paletteScheme.value;
+  let colors = [];
+  
+  let r = parseInt(base.slice(1,3),16);
+  let g = parseInt(base.slice(3,5),16);
+  let b = parseInt(base.slice(5,7),16);
+  
+  function rgbToHex(r,g,b) { return "#" + [r,g,b].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+  function hslToRgb(h,s,l) {
+    let c = (1 - Math.abs(2*l - 1)) * s;
+    let x = c * (1 - Math.abs((h/60)%2 - 1));
+    let m = l - c/2;
+    let [r,g,b] = h<60?[c,x,0]:h<120?[x,c,0]:h<180?[0,c,x]:h<240?[0,x,c]:h<300?[x,0,c]:[c,0,x];
+    return [Math.round((r+m)*255), Math.round((g+m)*255), Math.round((b+m)*255)];
+  }
+  
+  if(scheme === "game") {
+    colors = [base, "#ffffff", "#000000", "#808080"];
+    let [h,s,l] = [Math.random()*360, 0.5 + Math.random()*0.5, 0.3 + Math.random()*0.4];
+    for(let i=0; i<4; i++) {
+      let [cr,cg,cb] = hslToRgb((h + i*45)%360, s, l);
+      colors.push(rgbToHex(cr,cg,cb));
+    }
+  } else {
+    let [h,s,l] = [0,0,0];
+    let max = Math.max(r,g,b), min = Math.min(r,g,b);
+    let d = max - min;
+    l = (max + min) / 510;
+    s = d === 0 ? 0 : d / (1 - Math.abs(2*l - 1));
+    h = max === min ? 0 : max === r ? (g - b)/d % 6 : max === g ? (b - r)/d + 2 : (r - g)/d + 4;
+    h = h * 60;
+    if(h < 0) h += 360;
+    
+    if(scheme === "analogous") {
+      for(let i=-2; i<=2; i++) colors.push(rgbToHex(...hslToRgb(h + i*30, s, l)));
+    } else if(scheme === "complementary") {
+      colors.push(base, rgbToHex(...hslToRgb((h+180)%360, s, l)));
+      colors.push(rgbToHex(...hslToRgb((h+180)%360, Math.max(0, s-0.2), Math.min(1, l+0.2))));
+      colors.push(rgbToHex(...hslToRgb(h, Math.max(0, s-0.2), Math.min(1, l-0.2))));
+    } else if(scheme === "triadic") {
+      for(let i=0; i<3; i++) colors.push(rgbToHex(...hslToRgb((h + i*120)%360, s, l)));
+    } else if(scheme === "tetradic") {
+      for(let i=0; i<4; i++) colors.push(rgbToHex(...hslToRgb((h + i*90)%360, s, l)));
+    } else if(scheme === "monochromatic") {
+      for(let i=0; i<5; i++) colors.push(rgbToHex(...hslToRgb(h, s, Math.max(0.1, Math.min(0.9, l + (i-2)*0.15)))));
+    }
+  }
+  
+  renderGeneratedPalette(colors);
+  drawPaletteTest(colors);
+}
+
+function renderGeneratedPalette(colors) {
+  generatedPalette.innerHTML = colors.map(c => 
+    `<div style="width:40px; height:40px; background:${c}; border:1px solid #555; cursor:pointer;" onclick="navigator.clipboard.writeText('${c}');alert('${c} copied!')"></div>`
+  ).join('');
+}
+
+function drawPaletteTest(colors) {
+  let c = paletteTestCanvas, ctx = c.getContext("2d");
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.font = "bold 24px system-ui";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  
+  colors.forEach((col,i) => {
+    ctx.fillStyle = col;
+    ctx.fillText("Aa", 30 + i*35, 40);
+    ctx.fillRect(15 + i*35, 55, 30, 20);
+  });
+}
+
+function copyPaletteColors() {
+  let swatches = generatedPalette.querySelectorAll('div');
+  let colors = Array.from(swatches).map(s => s.style.background);
+  navigator.clipboard.writeText(colors.join(', '));
+  alert("Colors copied to clipboard!");
+}
+
+function savePalette() {
+  let swatches = generatedPalette.querySelectorAll('div');
+  let colors = Array.from(swatches).map(s => s.style.background);
+  let palettes = JSON.parse(localStorage.getItem('sultan_palettes') || '[]');
+  palettes.push({ name: `Palette ${palettes.length + 1}`, colors, time: Date.now() });
+  localStorage.setItem('sultan_palettes', JSON.stringify(palettes));
+  loadPalette();
+  alert("Palette saved!");
+}
+
+function loadPalette() {
+  let palettes = JSON.parse(localStorage.getItem('sultan_palettes') || '[]');
+  savedPalettesList.innerHTML = palettes.map((p,i) => 
+    `<div style="display:flex; align-items:center; gap:5px; padding:5px; background:var(--input-bg); margin-bottom:5px; border-radius:4px;">
+      <div style="display:flex;">${p.colors.map(c=>`<div style="width:15px; height:15px; background:${c}; border:1px solid #444;"></div>`).join('')}</div>
+      <span style="flex:1; font-size:0.8em;">${p.name}</span>
+      <button onclick="loadPaletteById(${i})" style="padding:2px 8px; font-size:0.7em;">Load</button>
+      <button onclick="deletePalette(${i})" class="red" style="padding:2px 8px; font-size:0.7em;">×</button>
+    </div>`
+  ).join('');
+}
+
+function loadPaletteById(idx) {
+  let palettes = JSON.parse(localStorage.getItem('sultan_palettes') || '[]');
+  if(palettes[idx]) {
+    renderGeneratedPalette(palettes[idx].colors);
+    drawPaletteTest(palettes[idx].colors);
+  }
+}
+
+function deletePalette(idx) {
+  let palettes = JSON.parse(localStorage.getItem('sultan_palettes') || '[]');
+  palettes.splice(idx, 1);
+  localStorage.setItem('sultan_palettes', JSON.stringify(palettes));
+  loadPalette();
+}
+
+// --- FONT PREVIEW ---
+let currentFontFamily = 'system-ui';
+
+function updateFontPreview() {
+  let c = fontCanvas, ctx = c.getContext("2d");
+  let text = fontTextInput.value || "Sultan 47 Mobile";
+  let size = fontSize.value;
+  let color = fontColor.value;
+  let style = fontStyle.value;
+  
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.font = `${style} ${size}px ${currentFontFamily}`;
+  ctx.fillStyle = color;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, c.width/2, c.height/2);
+}
+
+function setFontFamily(fam) {
+  currentFontFamily = fam;
+  updateFontPreview();
+}
+
+function downloadFontPreview() {
+  let a = document.createElement("a");
+  a.download = "font_preview.png";
+  a.href = fontCanvas.toDataURL();
+  a.click();
+}
+
+function exportFontCSS() {
+  let css = `.game-font {
+  font-family: ${currentFontFamily};
+  font-size: ${fontSize.value}px;
+  font-style: ${fontStyle.value};
+  color: ${fontColor.value};
+}`;
+  fontCSSOutput.value = css;
+}
+
+// --- SPRITE PACKER ---
+function initPacker() {
+  updateSpriteCount();
+}
+
+function initPackerEditor() {
+  let c = packerCanvas, ctx = c.getContext("2d");
+  
+  c.onmousedown = (e) => {
+    packerUndoStack.push(c.toDataURL());
+    if(packerUndoStack.length > 20) packerUndoStack.shift();
+    isDrawingPacker = true;
+    drawPackerPixel(e);
+  };
+  
+  c.onmousemove = (e) => {
+    if(!isDrawingPacker) return;
+    drawPackerPixel(e);
+  };
+  
+  c.onmouseup = () => isDrawingPacker = false;
+  c.onmouseleave = () => isDrawingPacker = false;
+}
+
+function drawPackerPixel(e) {
+  let c = packerCanvas, ctx = c.getContext("2d");
+  let rect = c.getBoundingClientRect();
+  let scaleX = c.width / rect.width, scaleY = c.height / rect.height;
+  let x = Math.floor((e.clientX - rect.left) * scaleX);
+  let y = Math.floor((e.clientY - rect.top) * scaleY);
+  let size = +packerSize.value;
+  
+  ctx.fillStyle = packerColor.value;
+  ctx.fillRect(x, y, size, size);
+}
+
+function undoPacker() {
+  if(packerUndoStack.length === 0) return;
+  let img = new Image();
+  img.onload = () => {
+    let c = packerCanvas, ctx = c.getContext("2d");
+    ctx.clearRect(0,0,c.width,c.height);
+    ctx.drawImage(img,0,0);
+  };
+  img.src = packerUndoStack.pop();
+}
+
+function clearPackerCanvas() {
+  let c = packerCanvas, ctx = c.getContext("2d");
+  packerUndoStack.push(c.toDataURL());
+  ctx.clearRect(0,0,c.width,c.height);
+}
+
+function applyPackerResize() {
+  let c = packerCanvas, ctx = c.getContext("2d");
+  let scale = parseFloat(packerScale.value);
+  let tmp = document.createElement('canvas');
+  tmp.width = c.width * scale;
+  tmp.height = c.height * scale;
+  tmp.getContext("2d").imageSmoothingEnabled = false;
+  tmp.getContext("2d").drawImage(c, 0, 0, tmp.width, tmp.height);
+  c.width = tmp.width;
+  c.height = tmp.height;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(tmp, 0, 0);
+  packerUndoStack.push(c.toDataURL());
+}
+
+function handlePackerUpload(input) {
+  Array.from(input.files).forEach(file => {
+    let reader = new FileReader();
+    reader.onload = (e) => {
+      let img = new Image();
+      img.onload = () => {
+        packerSprites.push({ name: file.name, img: img, w: img.width, h: img.height });
+        updatePackerSource();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function handlePackerAddAsset(input) {
+  if(!spriteCanvasEl.width) return alert("No asset to add");
+  let canvas = document.createElement('canvas');
+  canvas.width = spriteCanvasEl.width;
+  canvas.height = spriteCanvasEl.height;
+  canvas.getContext("2d").drawImage(spriteCanvasEl,0,0);
+  
+  packerSprites.push({ 
+    name: filenameEl.innerText + ".png", 
+    img: canvas, 
+    w: canvas.width, 
+    h: canvas.height 
+  });
+  updatePackerSource();
+}
+
+function updatePackerSource() {
+  let container = packerSource;
+  container.innerHTML = packerSprites.map((s,i) => 
+    `<div style="position:relative;">
+      <canvas width="${Math.min(s.w,50)}" height="${Math.min(s.h,50)}" style="border:1px solid #444; image-rendering:pixelated;"></canvas>
+      <button onclick="removePackerSprite(${i})" class="red" style="position:absolute; top:-5px; right:-5px; padding:0 4px; font-size:10px;">×</button>
+    </div>`
+  ).join('');
+  
+  container.querySelectorAll('canvas').forEach((c,i) => {
+    let ctx = c.getContext("2d");
+    ctx.drawImage(packerSprites[i].img, 0, 0, c.width, c.height);
+  });
+  
+  updateSpriteCount();
+}
+
+function removePackerSprite(idx) {
+  packerSprites.splice(idx, 1);
+  updatePackerSource();
+}
+
+function clearPacker() {
+  packerSprites = [];
+  updatePackerSource();
+  packerCanvas.getContext("2d").clearRect(0,0,packerCanvas.width,packerCanvas.height);
+  packerJSON.value = "";
+}
+
+function updateSpriteCount() {
+  spriteCount.textContent = packerSprites.length;
+}
+
+function packSprites() {
+  if(packerSprites.length === 0) return alert("No sprites to pack");
+  
+  let padding = +packerPadding.value;
+  let algo = packerAlgo.value;
+  let canvas = packerCanvas, ctx = canvas.getContext("2d");
+  
+  if(algo === "basic") {
+    let maxSize = Math.max(...packerSprites.map(s => Math.max(s.w, s.h)));
+    let cols = Math.ceil(Math.sqrt(packerSprites.length));
+    let rows = Math.ceil(packerSprites.length / cols);
+    canvas.width = (maxSize + padding) * cols;
+    canvas.height = (maxSize + padding) * rows;
+    
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    
+    let atlas = { frames: {} };
+    packerSprites.forEach((s,i) => {
+      let col = i % cols, row = Math.floor(i / cols);
+      let x = col * (maxSize + padding) + padding/2;
+      let y = row * (maxSize + padding) + padding/2;
+      ctx.drawImage(s.img, x, y);
+      
+      atlas.frames[s.name] = {
+        x: Math.round(x), y: Math.round(y),
+        w: s.w, h: s.h,
+        frame: { x: Math.round(x), y: Math.round(y), w: s.w, h: s.h }
+      };
+    });
+    
+    packerJSON.value = JSON.stringify(atlas, null, 2);
+  } else {
+    packerSprites.sort((a,b) => Math.max(b.w,b.h) - Math.max(a.w,a.h));
+    
+    let bins = [];
+    for(let s of packerSprites) {
+      let placed = false;
+      for(let bin of bins) {
+        if(bin.x + s.w <= bin.w && bin.y + s.h <= bin.h) {
+          s.x = bin.x; s.y = bin.y;
+          bin.x += s.w + padding;
+          bin.usedH = Math.max(bin.usedH, s.h);
+          placed = true;
+          break;
+        }
+      }
+      if(!placed) {
+        let binW = s.w + padding;
+        let maxH = bins.reduce((m,b) => Math.max(m, b.usedH), 0);
+        bins.push({ x: 0, y: maxH + padding, w: 512, h: 512, usedH: s.h });
+        s.x = 0; s.y = maxH + padding;
+      }
+    }
+    
+    let maxH = bins.reduce((m,b) => Math.max(m, b.usedH + b.y), 0);
+    canvas.width = 512;
+    canvas.height = Math.max(256, Math.pow(2, Math.ceil(Math.log2(maxH))));
+    
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    
+    let atlas = { frames: {} };
+    packerSprites.forEach(s => {
+      ctx.drawImage(s.img, s.x, s.y);
+      atlas.frames[s.name] = {
+        x: s.x, y: s.y,
+        w: s.w, h: s.h
+      };
+    });
+    
+    packerJSON.value = JSON.stringify(atlas, null, 2);
+  }
+  
+  packerUndoStack = [];
+}
+
+function downloadPackedSheet() {
+  let a = document.createElement("a");
+  a.download = "sprite_sheet.png";
+  a.href = packerCanvas.toDataURL();
+  a.click();
+}
+
+// --- SFX SYNTH TOOL (NEW) ---
+function initSFXTool() {
+  drawSFXVisualizer();
+}
+
+function drawSFXVisualizer() {
+  let c = sfxCanvas, ctx = c.getContext("2d");
+  let w = c.width, h = c.height;
+  ctx.fillStyle = "#111";
+  ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = "#0f0";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  
+  let start = +sfxFreqStart.value;
+  let end = +sfxFreqEnd.value;
+  let dur = +sfxDuration.value;
+  
+  for(let x=0; x<w; x++) {
+    let t = (x/w) * dur;
+    let freq = start + (end - start) * (t/dur);
+    let y = h/2 + Math.sin(x * 0.1 * (freq/100)) * (h/3) * (1 - t/dur);
+    if(x===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+}
+
+function playSFX() {
+  let AudioContext = window.AudioContext || window.webkitAudioContext;
+  let ctx = new AudioContext();
+  let osc = ctx.createOscillator();
+  let gain = ctx.createGain();
+  
+  osc.type = sfxWave.value;
+  osc.frequency.setValueAtTime(+sfxFreqStart.value, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(1, +sfxFreqEnd.value), ctx.currentTime + +sfxDuration.value);
+  
+  gain.gain.setValueAtTime(+sfxVol.value, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + +sfxDuration.value + +sfxDecay.value);
+  
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  
+  osc.start();
+  osc.stop(ctx.currentTime + +sfxDuration.value + +sfxDecay.value);
+}
+
+function exportSFXCode() {
+  let code = `// Generated SFX
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+const osc = ctx.createOscillator();
+const gain = ctx.createGain();
+
+osc.type = "${sfxWave.value}";
+osc.frequency.setValueAtTime(${sfxFreqStart.value}, ctx.currentTime);
+osc.frequency.exponentialRampToValueAtTime(${sfxFreqEnd.value}, ctx.currentTime + ${sfxDuration.value});
+
+gain.gain.setValueAtTime(${sfxVol.value}, ctx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + ${sfxDuration.value} + ${sfxDecay.value});
+
+osc.connect(gain);
+gain.connect(ctx.destination);
+osc.start();
+osc.stop(ctx.currentTime + ${sfxDuration.value} + ${sfxDecay.value});`;
+  sfxCode.value = code;
+}
+
+// --- DATA EDITOR TOOL (NEW) ---
+function initDataTool() {
+  if(gameData.length === 0) loadSampleData();
+}
+
+function loadSampleData() {
+  gameData = [
+    {key:"player_hp", value:"100", type:"number"},
+    {key:"game_speed", value:"1.5", type:"number"},
+    {key:"is_hardcore", value:"false", type:"boolean"},
+    {key:"player_name", value:"Sultan", type:"string"}
+  ];
+  renderDataTable();
+}
+
+function addDataRow() {
+  gameData.push({key:"", value:"", type:"string"});
+  renderDataTable();
+}
+
+function removeDataRow(idx) {
+  gameData.splice(idx, 1);
+  renderDataTable();
+}
+
+function clearData() {
+  gameData = [];
+  renderDataTable();
+}
+
+function updateDataRow(idx, field, val) {
+  gameData[idx][field] = val;
+}
+
+function renderDataTable() {
+  let container = dataListContainer;
+  container.innerHTML = gameData.map((d,i) => `
+    <div class="data-row">
+      <input type="text" value="${d.key}" placeholder="Key" oninput="updateDataRow(${i}, 'key', this.value)">
+      <input type="text" value="${d.value}" placeholder="Value" oninput="updateDataRow(${i}, 'value', this.value)">
+      <select onchange="updateDataRow(${i}, 'type', this.value)">
+        <option value="string" ${d.type==='string'?'selected':''}>String</option>
+        <option value="number" ${d.type==='number'?'selected':''}>Number</option>
+        <option value="boolean" ${d.type==='boolean'?'selected':''}>Boolean</option>
+      </select>
+      <button class="red" onclick="removeDataRow(${i})" style="padding:4px 8px;">×</button>
+    </div>
+  `).join('');
+  exportGameData(false);
+}
+
+function exportGameData(alertUser = true) {
+  let obj = {};
+  gameData.forEach(d => {
+    if(!d.key) return;
+    let val = d.value;
+    if(d.type === 'number') val = parseFloat(val) || 0;
+    if(d.type === 'boolean') val = (val === 'true' || val === '1');
+    obj[d.key] = val;
+  });
+  dataOutput.value = JSON.stringify(obj, null, 2);
+  if(alertUser) alert("JSON Generated!");
+}
+
+// --- SYMBOL MAP TOOL (NEW) ---
+function initMapTool() {
+  renderMapMappingList();
+  
+  let c = mapCanvas, ctx = c.getContext("2d");
+  
+  c.onmousedown = (e) => {
+    if(mapTool === 'picker') { pickMapColor(e); return; }
+    mapUndoStack.push(c.toDataURL());
+    if(mapUndoStack.length > 20) mapUndoStack.shift();
+    isDrawingMap = true;
+    drawMapPixel(e);
+  };
+  
+  c.onmousemove = (e) => {
+    if(!isDrawingMap || mapTool === 'picker') return;
+    drawMapPixel(e);
+  };
+  
+  c.onmouseup = () => isDrawingMap = false;
+  c.onmouseleave = () => isDrawingMap = false;
+  
+  setTimeout(renderMap, 100);
+}
+
+function setMapTool(tool) {
+  mapTool = tool;
+  document.querySelectorAll('#tool-map .tool-btn').forEach(b=>b.classList.remove('active'));
+  if(tool === 'paint') mapPaintBtn.classList.add('active');
+  if(tool === 'erase') mapEraseBtn.classList.add('active');
+  if(tool === 'picker') mapPickerBtn.classList.add('active');
+}
+
+function drawMapPixel(e) {
+  let c = mapCanvas, ctx = c.getContext("2d");
+  let rect = c.getBoundingClientRect();
+  let scaleX = c.width / rect.width, scaleY = c.height / rect.height;
+  let x = Math.floor((e.clientX - rect.left) * scaleX);
+  let y = Math.floor((e.clientY - rect.top) * scaleY);
+  let size = +mapDrawSize.value;
+  
+  if(mapTool === 'erase') {
+    ctx.clearRect(x, y, size, size);
+  } else {
+    ctx.fillStyle = mapDrawColor.value;
+    ctx.fillRect(x, y, size, size);
+  }
+}
+
+function pickMapColor(e) {
+  let c = mapCanvas, ctx = c.getContext("2d");
+  let rect = c.getBoundingClientRect();
+  let scaleX = c.width / rect.width, scaleY = c.height / rect.height;
+  let x = Math.floor((e.clientX - rect.left) * scaleX);
+  let y = Math.floor((e.clientY - rect.top) * scaleY);
+  let p = ctx.getImageData(x, y, 1, 1).data;
+  if(p[3] === 0) return;
+  mapDrawColor.value = "#" + [p[0],p[1],p[2]].map(v=>v.toString(16).padStart(2,'0')).join('');
+  setMapTool('paint');
+}
+
+function undoMap() {
+  if(mapUndoStack.length === 0) return;
+  let img = new Image();
+  img.onload = () => {
+    let c = mapCanvas, ctx = c.getContext("2d");
+    ctx.clearRect(0,0,c.width,c.height);
+    ctx.drawImage(img,0,0);
+  };
+  img.src = mapUndoStack.pop();
+}
+
+function clearMapCanvas() {
+  let c = mapCanvas, ctx = c.getContext("2d");
+  mapUndoStack.push(c.toDataURL());
+  ctx.clearRect(0,0,c.width,c.height);
+}
+
+function renderMapMappingList() {
+  let container = mapMappingList;
+  container.innerHTML = Object.keys(mapMappings).map(char => `
+    <div class="map-row">
+      <input type="text" value="${char}" readonly style="text-align:center; width:40px; padding:5px;">
+      <input type="color" value="${mapMappings[char]}" oninput="updateMapMapping('${char}', this.value)" style="height:30px; margin:0; padding:2px;">
+      <button class="red" onclick="deleteMapMapping('${char}')" style="padding:4px;">×</button>
+    </div>
+  `).join('');
+}
+
+function addMapMapping() {
+  let newChar = prompt("Enter symbol character (e.g. 'A', '1', '*'):");
+  if(newChar && newChar.length === 1 && !mapMappings[newChar]) {
+    mapMappings[newChar] = '#ffffff';
+    renderMapMappingList();
+    renderMap();
+  } else if (mapMappings[newChar]) {
+    alert("Symbol already exists.");
+  }
+}
+
+function updateMapMapping(char, color) {
+  mapMappings[char] = color;
+  renderMap();
+}
+
+function deleteMapMapping(char) {
+  delete mapMappings[char];
+  renderMapMappingList();
+  renderMap();
+}
+
+function renderMap() {
+  let input = mapInput.value;
+  let size = +mapCellSize.value;
+  mapCellSizeVal.innerText = size + 'px';
+  
+  let lines = input.split('\n');
+  let w = 0;
+  lines.forEach(l => { if(l.length > w) w = l.length; });
+  let h = lines.length;
+  
+  let c = mapCanvas, ctx = c.getContext("2d");
+  c.width = w * size;
+  c.height = h * size;
+  
+  ctx.imageSmoothingEnabled = false;
+  
+  ctx.fillStyle = "#222";
+  ctx.fillRect(0,0,c.width,c.height);
+  ctx.strokeStyle = "#333";
+  ctx.lineWidth = 1;
+  for(let x=0; x<=c.width; x+=size) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,c.height); ctx.stroke(); }
+  for(let y=0; y<=c.height; y+=size) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(c.width,y); ctx.stroke(); }
+  
+  ctx.font = `${size-2}px monospace`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  
+  for(let y=0; y<h; y++) {
+    for(let x=0; x<w; x++) {
+      let char = lines[y] ? lines[y][x] : ' ';
+      if(mapMappings[char]) {
+        ctx.fillStyle = mapMappings[char];
+        ctx.fillRect(x*size, y*size, size, size);
+      } else if(char !== ' ' && char !== undefined) {
+        ctx.fillStyle = "#444";
+        ctx.fillText(char, x*size + size/2, y*size + size/2);
+      }
+    }
+  }
+}
+
+mapCanvas.onclick = (e) => { 
+  if(isDrawingMap) return;
+  let rect = mapCanvas.getBoundingClientRect();
+  let scaleX = mapCanvas.width / rect.width;
+  let scaleY = mapCanvas.height / rect.height;
+  let x = Math.floor((e.clientX - rect.left) * scaleX / +mapCellSize.value);
+  let y = Math.floor((e.clientY - rect.top) * scaleY / +mapCellSize.value);
+  
+  let lines = mapInput.value.split('\n');
+  let char = (lines[y] && lines[y][x]) ? lines[y][x] : ' ';
+  
+  let r=0, g=0, b=0, a=0;
+  let hex = "transparent";
+  
+  if(mapMappings[char]) {
+    let c = mapMappings[char];
+    hex = c;
+    r = parseInt(c.slice(1,3), 16);
+    g = parseInt(c.slice(3,5), 16);
+    b = parseInt(c.slice(5,7), 16);
+    a = 255;
+  }
+  
+  let decVal = (r << 16) | (g << 8) | b;
+  let binVal = (decVal).toString(2).padStart(24, '0');
+  
+  inspSymbol.innerText = char;
+  inspColor.innerText = hex.toUpperCase();
+  inspColorBox.style.background = hex;
+  inspDec.innerText = decVal;
+  inspHex.innerText = "0x" + decVal.toString(16).toUpperCase().padStart(6, '0');
+  inspBin.innerText = `${binVal.slice(0,8)} ${binVal.slice(8,16)} ${binVal.slice(16,24)}`;
+};
+
+function downloadMap() {
+  let a = document.createElement("a");
+  a.download = "symbol_map.png";
+  a.href = mapCanvas.toDataURL();
+  a.click();
+}
+
+function exportMapData() {
+  let lines = mapInput.value.split('\n');
+  let data = lines.map(l => l.split(''));
+  alert("Map data structure ready for console (see console)");
+  console.log(data);
+}
+
+// --- SAVE/LOAD PROJECT ---
+function saveProject() {
+  localStorage.setItem('sultan47_proj', JSON.stringify(currentProject));
+  localStorage.setItem('sultan47_img', spriteCanvasEl.toDataURL());
+  saveBtn.innerText="Saved!"; setTimeout(()=>saveBtn.innerText="Save",1500);
+}
+
+function loadProject() {
+  let p = localStorage.getItem('sultan47_proj'), img = localStorage.getItem('sultan47_img');
+  if(!p) return;
+  currentProject = JSON.parse(p);
+  categorySelect.value=currentProject.cat; subjectInput.value=currentProject.sub;
+  framesSelect.value=currentProject.frames; resSelect.value=currentProject.res; tagsInput.value=currentProject.tags||'';
+  outputEl.innerText=currentProject.prompt; filenameEl.innerText=currentProject.fname;
+  if(img) {
+    editorSourceImage = new Image(); 
+    editorSourceImage.onload=()=>drawEditorCanvas(1); 
+    editorSourceImage.src=img;
+    artOutputImg.src=img; artOutputImg.style.display="block";
+  }
+  loadPalette();
+}
+</script>
+</body>
+</html>
